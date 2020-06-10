@@ -1,5 +1,7 @@
 package com.example.redditclonebackend.services;
 
+import com.example.redditclonebackend.dto.AuthenticationResponse;
+import com.example.redditclonebackend.dto.LoginRequest;
 import com.example.redditclonebackend.dto.RegisterRequest;
 import com.example.redditclonebackend.entities.NotificationMail;
 import com.example.redditclonebackend.entities.User;
@@ -7,11 +9,16 @@ import com.example.redditclonebackend.entities.VerificationToken;
 import com.example.redditclonebackend.exceptions.SpringRedditException;
 import com.example.redditclonebackend.repositories.UserRepository;
 import com.example.redditclonebackend.repositories.VerificationTokenRepository;
+import com.example.redditclonebackend.security.JwtProvider;
 import lombok.AllArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,6 +30,9 @@ public class AuthService {
     private final UserRepository userRepository;
     private final VerificationTokenRepository verificationTokenRepository;
     private final MailService mailService;
+    private final AuthenticationManager authenticationManager;
+    private final JwtProvider jwtProvider;
+
 
     @Transactional
     public void signUp(RegisterRequest registerRequest) {
@@ -60,5 +70,17 @@ public class AuthService {
         user.setEnabled(true);
         userRepository.save(user);
 
+    }
+
+    private String encodePassword(String password) {
+        return passwordEncoder.encode(password);
+    }
+
+    public AuthenticationResponse login(LoginRequest loginRequest) {
+        Authentication authenticate = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(),
+                loginRequest.getPassword()));
+        SecurityContextHolder.getContext().setAuthentication(authenticate);
+        String authenticationToken = jwtProvider.generateToken(authenticate);
+        return new AuthenticationResponse(authenticationToken, loginRequest.getUsername());
     }
 }
