@@ -67,7 +67,7 @@ public class AuthService {
 
     private void fetchUserAndEnable(VerificationToken token) {
         String username = token.getUser().getUsername();
-        User user = userRepository.findAllByUsername(username).orElseThrow(() -> new SpringRedditException("Username name not found"));
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new SpringRedditException("Username name not found"));
         user.setEnabled(true);
         userRepository.save(user);
 
@@ -89,7 +89,7 @@ public class AuthService {
     User getCurrentUser() {
         org.springframework.security.core.userdetails.User principal = (org.springframework.security.core.userdetails.User) SecurityContextHolder.
                 getContext().getAuthentication().getPrincipal();
-        return userRepository.findAllByUsername(principal.getUsername())
+        return userRepository.findByUsername(principal.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("User name not found - " + principal.getUsername()));
     }
 }
