@@ -7,13 +7,19 @@ import {SignUpComponent} from './auth/signup/sign-up.component';
 import {AppRoutingModule} from './app-routing.module';
 import {ReactiveFormsModule} from '@angular/forms';
 import {AuthModule} from './auth/auth.module';
-import {NgxWebstorageModule} from "ngx-webstorage";
+import {NgxWebstorageModule} from 'ngx-webstorage';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import {ToastrModule} from 'ngx-toastr';
+import {HTTP_INTERCEPTORS} from '@angular/common/http';
+import {TokenInterceptor} from './token-interceptor';
+import { HomeComponent } from './home/home.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     HeaderComponent,
-    SignUpComponent
+    SignUpComponent,
+    HomeComponent
   ],
   imports: [
     AppRoutingModule,
@@ -21,9 +27,17 @@ import {NgxWebstorageModule} from "ngx-webstorage";
 
     ReactiveFormsModule,
     AuthModule,
-    NgxWebstorageModule.forRoot()
+    NgxWebstorageModule.forRoot(),
+    BrowserAnimationsModule,
+    ToastrModule.forRoot()
   ],
-  providers: [],
+  providers: [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: TokenInterceptor,
+      multi: true
+    }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule {

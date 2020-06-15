@@ -4,6 +4,7 @@ import {AuthService} from '../shared/auth.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {LoginRequestPayload} from '../../models/login-request-payload';
 import {throwError} from 'rxjs';
+import {ToastrService} from 'ngx-toastr';
 
 @Component({
   selector: 'app-login',
@@ -14,7 +15,10 @@ export class LoginComponent implements OnInit {
   isError: boolean;
   loginForm: FormGroup;
   loginRequestPayload: LoginRequestPayload;
-  constructor(private authService: AuthService) {
+  registerSuccessMessage: string;
+
+  constructor(private authService: AuthService, private activatedRoute: ActivatedRoute,
+              private router: Router, private toastr: ToastrService) {
     this.loginRequestPayload = {
       username: '',
       password: ''
@@ -26,21 +30,29 @@ export class LoginComponent implements OnInit {
       username: new FormControl(null, Validators.required),
       password: new FormControl(null, Validators.required)
     });
-    /*    this.activatedRoute.queryParams
-          .subscribe(params => {
-            if (params.registered !== undefined && params.registered === 'true') {
-              console.log('Signup Successful');
-              this.registerSuccessMessage = 'Please Check your inbox for activation email '
-                + 'activate your account before you Login!';
-            }
-          });*/
+    this.activatedRoute.queryParams
+      .subscribe(params => {
+        if (params.registered !== undefined && params.registered === 'true') {
+          this.toastr.success('Signup Successful');
+          this.registerSuccessMessage = 'Please Check your inbox for activation email '
+            + 'activate your account before you Login!';
+        }
+      });
   }
 
   login() {
     this.loginRequestPayload.username = this.loginForm.get('username').value;
     this.loginRequestPayload.password = this.loginForm.get('password').value;
     this.authService.login(this.loginRequestPayload).subscribe(data => {
-      console.log('Login successful');
+      if (data) {
+        if (data) {
+          this.isError = false;
+          this.router.navigateByUrl('/');
+          this.toastr.success('Login Successful');
+        } else {
+          this.isError = true;
+        }
+      }
     });
   }
 }
